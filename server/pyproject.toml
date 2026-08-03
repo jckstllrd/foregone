@@ -9,3 +9,6 @@ dependencies = [
 [tool.pyright]
 venvPath = "."
 venv = ".venv"
+
+[tool.fastapi]
+entrypoint = "app.main:app"
