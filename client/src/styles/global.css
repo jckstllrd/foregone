@@ -1,0 +1,170 @@
+/* 1. Use a more-intuitive box-sizing model */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* 2. Remove default margin */
+*:not(dialog) {
+  margin: 0;
+}
+
+/* 3. Enable keyword animations */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    interpolate-size: allow-keywords;
+  }
+}
+
+body {
+  /* 4. Increase line-height */
+  line-height: 1.5;
+  /* 5. Improve text rendering */
+  -webkit-font-smoothing: antialiased;
+  font-size: var(--text-base);
+  font-weight: 400;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 600;
+}
+
+h1 {
+  font-size: var(--text-3xl);
+}
+
+h2 {
+  font-size: var(--text-xl);
+}
+
+h3 {
+  font-size: var(--text-lg);
+}
+
+/* 6. Improve media defaults */
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+/* 7. Inherit fonts for form controls */
+input,
+button,
+textarea,
+select {
+  font: inherit;
+}
+
+/* 8. Avoid text overflows */
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  overflow-wrap: break-word;
+}
+
+/* 9. Improve line wrapping */
+p {
+  text-wrap: pretty;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  text-wrap: balance;
+}
+
+/*
+  10. Create a root stacking context
+*/
+#root,
+#__next {
+  isolation: isolate;
+}
+
+:root {
+  --color-text: #1c1f1a;
+  --color-background: #ffffff;
+  --color-muted-background: #eef2e9;
+  --color-primary: #3f5d3a;
+  --color-action: #2e4429;
+  --color-secondary: #6b8062;
+  --color-decorative: #d7ded1;
+
+  --text-sm: 0.85rem;
+  --text-base: 1rem;
+  --text-lg: 1.15rem;
+  --text-xl: clamp(1.5rem, 1.25rem + 1.25vw, 2rem);
+  --text-2xl: clamp(2rem, 1.6rem + 2vw, 2.75rem);
+  --text-3xl: clamp(2.25rem, 1.7rem + 2.75vw, 3.25rem);
+
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+  --space-xl: 24px;
+  --space-2xl: 32px;
+  --space-hero: 48px;
+
+  --radius-sm: 10px;
+  --radius-md: 20px;
+  --radius-lg: 30px;
+
+  --transition-fast: 150ms ease;
+  --transition-slow: 250ms ease;
+
+  --shadow-sm: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 8px 20px rgba(0, 0, 0, 0.15);
+
+  font-family: "Roboto Mono", sans-serif;
+  color: var(--color-text);
+  background: var(--color-background);
+}
+
+@font-face {
+  font-family: "Roboto Mono";
+  src: url(../assets/fonts/Roboto_Mono/static/RobotoMono-Regular.ttf);
+  font-weight: 400;
+  font-style: normal;
+  font-display: fallback;
+}
+
+@font-face {
+  font-family: "Roboto Mono";
+  src: url(../assets/fonts/Roboto_Mono/static/RobotoMono-Medium.ttf);
+  font-weight: 500;
+  font-style: normal;
+  font-display: fallback;
+}
+
+@font-face {
+  font-family: "Roboto Mono";
+  src: url(../assets/fonts/Roboto_Mono/static/RobotoMono-SemiBold.ttf);
+  font-weight: 600;
+  font-style: normal;
+  font-display: fallback;
+}
+
+@font-face {
+  font-family: "Roboto Mono";
+  src: url(../assets/fonts/Roboto_Mono/static/RobotoMono-Bold.ttf);
+  font-weight: 700;
+  font-style: normal;
+  font-display: fallback;
+}
