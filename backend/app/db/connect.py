@@ -2,6 +2,7 @@ import os
 
 import psycopg2
 from dotenv import load_dotenv
+from psycopg2.extensions import connection
 
 load_dotenv()
 DATABASE_HOST = os.getenv("DATABASE_HOST")
@@ -22,7 +23,4 @@ def connect():
             return conn
     except (psycopg2.DatabaseError, Exception) as error:
         print(error)
-
-
-if __name__ == "__main__":
-    connect()
+        raise
