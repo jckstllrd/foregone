@@ -1,9 +1,0 @@
-container {
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: 1fr min(42rem, 100%) 1fr;
-}
-
-.container > * {
-  grid-column: 2;
-}
