@@ -11,11 +11,10 @@ function App() {
     if (!prompt.trim() || isStreaming) return;
 
     setIsStreaming(true);
-    setResponse(""); // Clear previous response
+    setResponse("");
 
     try {
-      // NOTE: Replace this URL with your actual local or Cloud Run backend URL
-      const res = await fetch(apiUrl, {
+      const res = await fetch(`${apiUrl}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: prompt }),
