@@ -17,7 +17,7 @@ function App() {
       const res = await fetch(`${apiUrl}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: prompt }),
+        body: JSON.stringify({ conversationId: 0, messageContent: prompt }),
       });
 
       if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);

@@ -7,7 +7,7 @@ RUN npm install
 
 COPY . .
 
-ARG VITE_FOREGONE_API_URL
+ARG VITE_FOREGONE_API_URL=https://foregone-backend-970377034894.europe-west2.run.app
 ENV VITE_FOREGONE_API_URL=$VITE_FOREGONE_API_URL
 RUN npm run build
 
