@@ -1,4 +1,6 @@
 import { useState } from "react";
+import ReactMarkdown from "react-markdown";
+
 const apiUrl = import.meta.env.VITE_FOREGONE_API_URL;
 
 function App() {
@@ -21,85 +23,48 @@ function App() {
       });
 
       if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-      if (!res.body) throw new Error("ReadableStream not supported.");
 
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder("utf-8");
-      let done = false;
-
-      while (!done) {
-        const { value, done: readerDone } = await reader.read();
-        done = readerDone;
-
-        if (value) {
-          const chunk = decoder.decode(value, { stream: true });
-          setResponse((prev) => prev + chunk);
-        }
-      }
+      const text: string = await res.json();
+      setResponse(text);
     } catch (error) {
-      console.error("Streaming failed:", error);
-      setResponse(
-        (prev) =>
-          prev + "\n\n[Error: Connection failed. Check CORS or server status.]",
-      );
+      console.error("Request failed:", error);
+      setResponse("something went wrong. try asking again.");
     } finally {
       setIsStreaming(false);
     }
   };
 
   return (
-    <div
-      style={{
-        maxWidth: "600px",
-        margin: "40px auto",
-        fontFamily: "sans-serif",
-      }}
-    >
-      <h1>⛳ Caddie</h1>
-      <p style={{ color: "#666" }}>AI Assistant for Golf Queries</p>
+    <div className="page">
+      <h1 className="wordmark">foregone</h1>
+      <p className="tagline">powered by caddie ai</p>
 
-      <div
-        style={{
-          minHeight: "200px",
-          padding: "16px",
-          background: "#f5f5f5",
-          borderRadius: "8px",
-          whiteSpace: "pre-wrap",
-          marginBottom: "20px",
-          border: "1px solid #ddd",
-        }}
-      >
-        {response || "Ask a golf question..."}
-        {isStreaming && <span style={{ opacity: 0.5 }}> █</span>}
-      </div>
+      {(response || isStreaming) && (
+        <div className="response">
+          {isStreaming ? (
+            <span className="thinking">thinking…</span>
+          ) : (
+            <ReactMarkdown>{response}</ReactMarkdown>
+          )}
+        </div>
+      )}
 
-      <form onSubmit={handleSubmit} style={{ display: "flex", gap: "8px" }}>
+      <form className="chat-form" onSubmit={handleSubmit}>
         <input
           type="text"
+          className="chat-input"
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           disabled={isStreaming}
-          style={{
-            flexGrow: 1,
-            padding: "12px",
-            borderRadius: "4px",
-            border: "1px solid #ccc",
-          }}
-          placeholder="e.g., How do I fix a slice?"
+          placeholder="how do i fix a slice..."
         />
         <button
           type="submit"
+          className={`send-button ${isStreaming ? "is-loading" : ""}`}
           disabled={isStreaming}
-          style={{
-            padding: "12px 24px",
-            borderRadius: "4px",
-            background: isStreaming ? "#ccc" : "#0070f3",
-            color: "white",
-            border: "none",
-            cursor: isStreaming ? "not-allowed" : "pointer",
-          }}
+          aria-label="send"
         >
-          {isStreaming ? "Thinking..." : "Send"}
+          →
         </button>
       </form>
     </div>
