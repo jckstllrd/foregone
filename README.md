@@ -1,57 +1,75 @@
-# caddie [in progress...]
+# React + TypeScript + Vite
 
-An AI golf assistant. Users ask questions about their game and get coaching advice back.
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-## Planned Architecture
+Currently, two official plugins are available:
+
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+
+## React Compiler
+
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+
+## Expanding the ESLint configuration
+
+If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+
+```js
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
+
+      // Remove tseslint.configs.recommended and replace with this
+      tseslint.configs.recommendedTypeChecked,
+      // Alternatively, use this for stricter rules
+      tseslint.configs.strictTypeChecked,
+      // Optionally, add this for stylistic rules
+      tseslint.configs.stylisticTypeChecked,
+
+      // Other configs...
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
 
 ```
-React / TypeScript client
-          │
-          ▼
-     FastAPI backend
-          │
-    ┌─────┴─────┐
-    ▼           ▼
-PostgreSQL    Redis
- + pgvector  (conversation cache)
-```
 
-The frontend talks to the FastAPI backend over HTTP. The backend calls an LLM through OpenRouter to generate responses, using PostgreSQL to store conversations and Redis to cache the active conversation context. pgvector handles embedding storage and similarity search for retrieval.
+You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
 
-## Planned stages
+```js
+// eslint.config.js
+import reactX from 'eslint-plugin-react-x'
+import reactDom from 'eslint-plugin-react-dom'
 
-1. **Chat** — conversational interface over an LLM
-2. **Retrieval** — RAG over golf coaching resources, so answers use curated material instead of solely the model's own training data
-3. **Vision** — swing analysis from live video, using pose estimation in the browser
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
+      // Enable lint rules for React
+      reactX.configs['recommended-typescript'],
+      // Enable lint rules for React DOM
+      reactDom.configs.recommended,
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
 
-## Stack
-
-| Layer    | Technology              |
-| -------- | ----------------------- |
-| Frontend | React, TypeScript, Vite |
-| Backend  | Python, FastAPI         |
-| Database | PostgreSQL, pgvector    |
-| Cache    | Redis                   |
-| Models   | OpenRouter              |
-
-## Structure
-
-```
-caddie/
-├── backend/   # FastAPI backend
-└── frontend/   # React frontend
-```
-
-## Setup
-
-```bash
-# backend
-cd backend
-uv sync
-uv run fastapi dev
-
-# frontend
-cd frontend
-npm install
-npm run dev
 ```
