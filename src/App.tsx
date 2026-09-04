@@ -2,11 +2,16 @@ import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 
 const apiUrl = import.meta.env.VITE_FOREGONE_API_URL;
-
+console.log(apiUrl);
+console.log("here");
 function App() {
   const [prompt, setPrompt] = useState("");
   const [response, setResponse] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
+  const [mode, setMode] = useState<"caddie" | "coach">("coach");
+
+  const placeholder =
+    mode === "coach" ? "how do i fix a slice..." : "i've landed in water...";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -14,9 +19,10 @@ function App() {
 
     setIsStreaming(true);
     setResponse("");
-
+    console.log(apiUrl);
     try {
-      const res = await fetch(`${apiUrl}`, {
+      const endpoint = mode === "coach" ? "/coach/chat" : "/caddie/chat";
+      const res = await fetch(`${apiUrl}${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ conversationId: 0, messageContent: prompt }),
@@ -36,6 +42,24 @@ function App() {
 
   return (
     <div className="page">
+      <div className="mode-toggle" role="group" aria-label="assistant mode">
+        <button
+          type="button"
+          className={`mode-option ${mode === "coach" ? "is-active" : ""}`}
+          onClick={() => setMode("coach")}
+          aria-pressed={mode === "coach"}
+        >
+          coach
+        </button>
+        <button
+          type="button"
+          className={`mode-option ${mode === "caddie" ? "is-active" : ""}`}
+          onClick={() => setMode("caddie")}
+          aria-pressed={mode === "caddie"}
+        >
+          caddie
+        </button>
+      </div>
       <h1 className="wordmark">foregone</h1>
       <p className="tagline">powered by caddie ai</p>
 
@@ -56,7 +80,7 @@ function App() {
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           disabled={isStreaming}
-          placeholder="how do i fix a slice..."
+          placeholder={placeholder}
         />
         <button
           type="submit"
