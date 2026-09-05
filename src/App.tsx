@@ -1,29 +1,50 @@
-import { useState } from "react";
-import ReactMarkdown from "react-markdown";
-
-interface ChatResponse {
-  conversation_id: string;
-  reply: string;
-}
+import { useRef, useState } from "react";
+import ChatInput from "./components/ChatInput";
+import ChatView from "./components/ChatView";
+import ModeToggle from "./components/ModeToggle";
+import Sidebar from "./components/Sidebar";
+import type { Message, Mode } from "./types/types";
 
 const apiUrl = import.meta.env.VITE_FOREGONE_API_URL;
-console.log(apiUrl);
-console.log("here");
+
 function App() {
+  const [mode, setMode] = useState<Mode>("caddie");
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isChatOpen, setIsChatOpen] = useState(false);
   const [prompt, setPrompt] = useState("");
-  const [response, setResponse] = useState("");
-  const [isStreaming, setIsStreaming] = useState(false);
-  const [mode, setMode] = useState<"caddie" | "coach">("coach");
+  const [isSending, setIsSending] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  const placeholder =
-    mode === "coach" ? "how do i fix a slice..." : "i've landed in water...";
+  const appendAssistant = (token: string) => {
+    setMessages((prev) => {
+      const last = prev.at(-1);
+      if (last?.role === "assistant") {
+        return [
+          ...prev.slice(0, -1),
+          { ...last, content: last.content + token },
+        ];
+      }
+      return [
+        ...prev,
+        { id: crypto.randomUUID(), role: "assistant", content: token },
+      ];
+    });
+  };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!prompt.trim() || isStreaming) return;
+  const handleSubmit = async () => {
+    const text = prompt.trim();
+    if (!text || isSending) return;
 
-    setIsStreaming(true);
-    setResponse("");
+    const history: Message[] = [
+      ...messages,
+      { id: crypto.randomUUID(), role: "user", content: text },
+    ];
+
+    setMessages(history);
+    setPrompt("");
+    setIsChatOpen(true);
+    setIsSending(true);
+
     try {
       const endpoint = mode === "coach" ? "/coach/chat" : "/caddie/chat";
       const res = await fetch(`${apiUrl}${endpoint}`, {
@@ -31,74 +52,120 @@ function App() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           conversation_id: "None",
-          messages: [{ role: "user", content: prompt }],
+          messages: [{ role: "user", content: text }],
         }),
       });
 
-      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-      console.log(res);
-      const chat: ChatResponse = await res.json();
-      setResponse(chat.reply);
+      if (!res.ok || !res.body) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      const flushFrame = (frame: string) => {
+        if (frame.startsWith("data: ")) {
+          appendAssistant(frame.slice("data: ".length));
+        }
+      };
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+
+        // a frame ends where the *next* one begins, not at any blank line —
+        // a token's own text can contain "\n\n" (paragraph/list breaks)
+        let nextFrameStart;
+        while ((nextFrameStart = buffer.indexOf("\n\ndata: ")) !== -1) {
+          flushFrame(buffer.slice(0, nextFrameStart));
+          buffer = buffer.slice(nextFrameStart + 2);
+        }
+      }
+
+      flushFrame(buffer.replace(/\n+$/, ""));
     } catch (error) {
       console.error("Request failed:", error);
-      setResponse("something went wrong. try asking again.");
+      appendAssistant("something went wrong. try asking again.");
     } finally {
-      setIsStreaming(false);
+      setIsSending(false);
     }
   };
 
-  return (
-    <div className="page">
-      <div className="mode-toggle" role="group" aria-label="assistant mode">
-        <button
-          type="button"
-          className={`mode-option ${mode === "coach" ? "is-active" : ""}`}
-          onClick={() => setMode("coach")}
-          aria-pressed={mode === "coach"}
-        >
-          coach
-        </button>
-        <button
-          type="button"
-          className={`mode-option ${mode === "caddie" ? "is-active" : ""}`}
-          onClick={() => setMode("caddie")}
-          aria-pressed={mode === "caddie"}
-        >
-          caddie
-        </button>
-      </div>
-      <h1 className="wordmark">foregone</h1>
-      <p className="tagline">powered by caddie ai</p>
+  const handleNewChat = () => {
+    setMessages([]);
+    setPrompt("");
+    inputRef.current?.focus();
+  };
 
-      {(response || isStreaming) && (
-        <div className="response">
-          {isStreaming ? (
-            <span className="thinking">thinking…</span>
-          ) : (
-            <ReactMarkdown>{response}</ReactMarkdown>
-          )}
+  return (
+    <>
+      <div
+        className={`backdrop ${isChatOpen ? "is-chat" : ""}`}
+        aria-hidden="true"
+      />
+      <div
+        className={`scrim ${isChatOpen ? "is-chat" : ""}`}
+        aria-hidden="true"
+      />
+
+      {isChatOpen ? (
+        <div className="shell">
+          <Sidebar
+            mode={mode}
+            onModeChange={setMode}
+            onNewChat={handleNewChat}
+          />
+
+          <main className="chat-main">
+            <header className="topbar">
+              <span className="mark" role="img" aria-label="Foregone">
+                f<span className="dot" />
+              </span>
+              <div className="topbar-actions">
+                <button
+                  type="button"
+                  className="sidebar-action"
+                  onClick={handleNewChat}
+                >
+                  + New
+                </button>
+                <ModeToggle mode={mode} onChange={setMode} />
+              </div>
+            </header>
+
+            <ChatView messages={messages} mode={mode} isSending={isSending} />
+
+            <div className="chat-dock">
+              <ChatInput
+                value={prompt}
+                onChange={setPrompt}
+                onSubmit={handleSubmit}
+                mode={mode}
+                isSending={isSending}
+                inputRef={inputRef}
+              />
+            </div>
+          </main>
+        </div>
+      ) : (
+        <div className="landing">
+          <ModeToggle mode={mode} onChange={setMode} />
+          <h1 className="wordmark">foregone</h1>
+          <p className="tagline">powered by caddie ai</p>
+          <ChatInput
+            value={prompt}
+            onChange={setPrompt}
+            onSubmit={handleSubmit}
+            mode={mode}
+            isSending={isSending}
+            inputRef={inputRef}
+          />
         </div>
       )}
-
-      <form className="chat-form" onSubmit={handleSubmit}>
-        <input
-          type="text"
-          className="chat-input"
-          value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
-          disabled={isStreaming}
-          placeholder={placeholder}
-        />
-        <button
-          type="submit"
-          className={`send-button ${isStreaming ? "is-loading" : ""}`}
-          disabled={isStreaming}
-          aria-label="send"
-        >
-          →
-        </button>
-      </form>
-    </div>
+    </>
   );
 }
 
