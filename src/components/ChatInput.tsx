@@ -1,5 +1,5 @@
 import type { RefObject } from "react";
-import type { Mode } from "./types";
+import type { Mode } from "../types/types";
 
 type Props = {
   value: string;
