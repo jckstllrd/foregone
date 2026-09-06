@@ -39,12 +39,12 @@ function App() {
       ...messages,
       { id: crypto.randomUUID(), role: "user", content: text },
     ];
-
     setMessages(history);
     setPrompt("");
     setIsChatOpen(true);
     setIsSending(true);
 
+    console.log(messages);
     try {
       const endpoint = mode === "coach" ? "/coach/chat" : "/caddie/chat";
       const res = await fetch(`${apiUrl}${endpoint}`, {
@@ -52,7 +52,7 @@ function App() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           conversation_id: "None",
-          messages: [{ role: "user", content: text }],
+          messages: history,
         }),
       });
 

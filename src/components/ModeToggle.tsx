@@ -5,7 +5,7 @@ type Props = {
   onChange: (mode: Mode) => void;
 };
 
-const MODES: Mode[] = ["coach", "caddie"];
+const MODES: Mode[] = ["caddie", "coach"];
 
 function ModeToggle({ mode, onChange }: Props) {
   return (
